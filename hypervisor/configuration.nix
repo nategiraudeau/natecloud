@@ -1,9 +1,9 @@
+{ pkgs, ... }:
 {
     system.stateVersion = "26.05";
 
     users.mutableUsers = false;
     users.users.root.hashedPassword = "!";
-
 
     # nate is the admin user
     users.users.nate = {
@@ -24,4 +24,8 @@
       PasswordAuthentication = false;
       KbdInteractiveAuthentication = false;
     };
+
+    environment.systemPackages = with pkgs; [
+        fastfetch
+    ];
 }
