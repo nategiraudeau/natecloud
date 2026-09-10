@@ -1,15 +1,27 @@
 {
-  system.stateVersion = "26.05";
+    system.stateVersion = "26.05";
 
-  users.mutableUsers = false;
-  users.users.root.hashedPassword = "!";
-  users.users.nate = { isNormalUser = true; extraGroups = [ "wheel" ]; hashedPassword = "!"; };
+    users.mutableUsers = false;
+    users.users.root.hashedPassword = "!";
 
-  security.sudo.wheelNeedsPassword = false;
-  services.openssh.enable = true;
-  services.openssh.settings = {
-    PermitRootLogin = "no";
-    PasswordAuthentication = false;
-    KbdInteractiveAuthentication = false;
-  };
+
+    # nate is the admin user
+    users.users.nate = {
+        isNormalUser = true;
+        extraGroups = [ "wheel" ];
+        hashedPassword = "!";
+    };
+
+    # nate does not need a password
+    security.sudo.wheelNeedsPassword = false;
+
+    # need to ssh from my mac using defined key
+    services.openssh.enable = true;
+    services.openssh.settings = {
+      PermitRootLogin = "no";
+
+      # No password, just ssh key
+      PasswordAuthentication = false;
+      KbdInteractiveAuthentication = false;
+    };
 }
