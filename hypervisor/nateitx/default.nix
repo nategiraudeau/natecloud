@@ -1,13 +1,38 @@
-# Configuration to boot my ITX PC from a USB
+# Config for my ITX PC: installs on the system from USB
 
 # PC build: https://pcpartpicker.com/list/JdNXQ6
 # Router is an Xfinity XB7-T (PC will have wired connection)
 
-{ modulesPath, ... }:
+{ modulesPath, lib, installed ? false, diskoModule ? null, ... }:
 let key = builtins.getEnv "SSH_PUBLIC_KEY";
-in assert key != "" || throw "SSH_PUBLIC_KEY not set (source .env)"; {
-    # NixOS built in ISO-image module
-    imports = [ "${modulesPath}/installer/cd-dvd/iso-image.nix" ];
+in assert key != "" || throw "SSH_PUBLIC_KEY not set (source .env && export SSH_PUBLIC_KEY)"; {
+    imports = (lib.optional (!installed) "${modulesPath}/installer/cd-dvd/iso-image.nix")
+            ++ (lib.optional (!installed) { isoImage = { makeEfiBootable = true; makeUsbBootable = true; forceTextMode = true; }; })
+            ++ (lib.optional installed diskoModule)
+            ++ (lib.optional installed {
+                boot.loader.systemd-boot.enable = true;
+                boot.loader.efi.canTouchEfiVariables = true;
+
+                # NVMe boot drive
+                disko.devices.disk.nvme = {
+                    device = "/dev/nvme0n1";
+                    type = "disk";
+                    content = {
+                        type = "gpt";
+                        partitions = {
+                            ESP = {
+                                size = "512M";
+                                type = "EF00";
+                                content = { type = "filesystem"; format = "vfat"; mountpoint = "/boot"; };
+                            };
+                            root = {
+                                size = "100%";
+                                content = { type = "filesystem"; format = "ext4"; mountpoint = "/"; };
+                            };
+                        };
+                    };
+                };
+            });
 
     # MSI H510I Pro WiFi: https://pcpartpicker.com/list/JdNXQ6
     hardware.enableRedistributableFirmware = true;
@@ -24,6 +49,4 @@ in assert key != "" || throw "SSH_PUBLIC_KEY not set (source .env)"; {
       openFirewall = true;
       publish = { enable = true; addresses = true; };
     };
-
-    isoImage = { makeEfiBootable = true; makeUsbBootable = true; forceTextMode = true; };
 }

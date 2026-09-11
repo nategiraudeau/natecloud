@@ -15,7 +15,7 @@
     # nate does not need a password
     security.sudo.wheelNeedsPassword = false;
 
-    # need to ssh from my mac using defined key
+    # need to ssh from mac using defined key
     services.openssh.enable = true;
     services.openssh.settings = {
       PermitRootLogin = "no";
