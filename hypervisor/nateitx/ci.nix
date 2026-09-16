@@ -1,5 +1,5 @@
 # Manually save /etc/github-runner-token for first rebuild
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
     services.github-runners.nateitx-hypervisor = {
         enable = true;
@@ -14,7 +14,7 @@
     };
 
     # sudo needs setuid privileges, which systemd's hardening blocks by default
-    systemd.services.github-runner-nateitx-hypervisor.serviceConfig.NoNewPrivileges = false;
+    systemd.services.github-runner-nateitx-hypervisor.serviceConfig.NoNewPrivileges = lib.mkForce false;
 
     users.groups.github-runner = { };
     users.users.github-runner = {
