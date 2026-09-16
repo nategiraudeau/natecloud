@@ -29,5 +29,6 @@
         fastfetch
         htop
         vim
+        fzf
     ];
 }

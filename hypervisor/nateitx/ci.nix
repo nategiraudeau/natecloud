@@ -13,6 +13,9 @@
         extraPackages = [ pkgs.sudo ];
     };
 
+    # sudo needs setuid privileges, which systemd's hardening blocks by default
+    systemd.services.github-runner-nateitx-hypervisor.serviceConfig.NoNewPrivileges = false;
+
     users.groups.github-runner = { };
     users.users.github-runner = {
         isSystemUser = true;
