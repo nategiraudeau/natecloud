@@ -27,5 +27,6 @@
 
     environment.systemPackages = with pkgs; [
         fastfetch
+        htop
     ];
 }
