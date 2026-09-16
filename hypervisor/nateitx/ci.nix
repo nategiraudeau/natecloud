@@ -1,5 +1,5 @@
 # Manually save /etc/github-runner-token for first rebuild
-{ pkgs, lib, ... }:
+{ lib, ... }:
 {
     services.github-runners.nateitx-hypervisor = {
         enable = true;
@@ -10,11 +10,38 @@
         user = "github-runner";
         group = "github-runner";
 
-        extraPackages = [ pkgs.sudo ];
+        # This trusted runner deploys the host
+        serviceOverrides = lib.genAttrs [
+            "NoNewPrivileges"
+            "PrivateUsers"
+            "PrivateDevices"
+            "PrivateMounts"
+            "PrivateTmp"
+            "ProtectSystem"
+            "ProtectHome"
+            "ProtectControlGroups"
+            "ProtectClock"
+            "ProtectHostname"
+            "ProtectKernelTunables"
+            "ProtectKernelModules"
+            "ProtectKernelLogs"
+            "RestrictNamespaces"
+            "RestrictRealtime"
+            "RestrictSUIDSGID"
+        ] (_: false) // {
+            CapabilityBoundingSet = lib.mkForce [ "~" ];
+            SystemCallFilter = lib.mkForce [ ];
+            RestrictAddressFamilies = lib.mkForce [ ];
+        };
     };
 
-    # sudo needs setuid privileges, which systemd's hardening blocks by default
-    systemd.services.github-runner-nateitx-hypervisor.serviceConfig.NoNewPrivileges = lib.mkForce false;
+    systemd.services.github-runner-nateitx-hypervisor = {
+        path = lib.mkBefore [ "/run/wrappers" "/run/current-system/sw" ];
+        
+        # Keep the current job alive during activation
+        restartIfChanged = false;
+        stopIfChanged = false;
+    };
 
     users.groups.github-runner = { };
     users.users.github-runner = {
@@ -22,7 +49,10 @@
         group = "github-runner";
     };
 
-    # github-runner user has permissions to run nixos-rebuild only
+    security.sudo.extraConfig = ''
+        Defaults:github-runner env_keep += "SSH_PUBLIC_KEY"
+    '';
+    # github-runner user has sudo permissions to run nixos-rebuild only
     security.sudo.extraRules = [{
         users = [ "github-runner" ];
         commands = [{

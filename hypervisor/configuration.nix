@@ -30,5 +30,6 @@
         htop
         vim
         fzf
+        ghostty
     ];
 }
