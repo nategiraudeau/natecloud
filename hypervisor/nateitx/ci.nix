@@ -1,5 +1,5 @@
 # Manually save /etc/github-runner-token for first rebuild
-{ ... }:
+{ pkgs, ... }:
 {
     services.github-runners.nateitx-hypervisor = {
         enable = true;
@@ -9,6 +9,8 @@
 
         user = "github-runner";
         group = "github-runner";
+
+        extraPackages = [ pkgs.sudo ];
     };
 
     users.groups.github-runner = { };
