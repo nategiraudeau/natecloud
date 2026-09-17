@@ -17,13 +17,20 @@ jobs:
         working-directory: hypervisor
         env:
           SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
-        run: nix flake check --impure
+        run: nix flake check --impure --no-update-lock-file
 
   deploy:
     needs: build
     runs-on: [self-hosted, hypervisor]
     steps:
       - uses: actions/checkout@v4
+      - name: runner diagnostics
+        run: |
+          grep -E 'NoNewPrivs|Seccomp' /proc/$$/status
+          systemctl show github-runner-nateitx-hypervisor \
+            -p NoNewPrivileges -p MainPID -p ExecMainStartTimestamp
       - name: rebuild
         working-directory: hypervisor
-        run: sudo nixos-rebuild switch --flake .#nateitx-installed
+        env:
+          SSH_PUBLIC_KEY: ${{ secrets.SSH_PUBLIC_KEY }}
+        run: sudo nixos-rebuild switch --impure --flake .#nateitx-installed
