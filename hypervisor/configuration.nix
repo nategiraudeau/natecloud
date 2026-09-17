@@ -28,7 +28,6 @@
     environment.systemPackages = with pkgs; [
         fastfetch
         htop
-        vim
         fzf
         ghostty
     ];
